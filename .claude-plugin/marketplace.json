@@ -1,0 +1,12 @@
+{
+  "name": "relay-sh",
+  "description": "Operate Relay (userelay.sh) from Claude Code: governed database access and managed databases.",
+  "owner": { "name": "Relay" },
+  "plugins": [
+    {
+      "name": "relay",
+      "source": "./plugins/relay",
+      "description": "Skills for the Relay CLI."
+    }
+  ]
+}

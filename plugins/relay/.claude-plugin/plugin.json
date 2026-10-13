@@ -1,0 +1,8 @@
+{
+  "name": "relay",
+  "description": "Skills for the Relay CLI.",
+  "author": { "name": "Relay" },
+  "homepage": "https://docs.userelay.sh",
+  "repository": "https://github.com/relay-sh/skills",
+  "license": "MPL-2.0"
+}
