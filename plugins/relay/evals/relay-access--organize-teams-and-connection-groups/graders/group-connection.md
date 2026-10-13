@@ -1,4 +1,4 @@
 ---
 type: regex
-pattern: 'relay groups add-connection'
+pattern: 'relay connections groups add-connection'
 ---
