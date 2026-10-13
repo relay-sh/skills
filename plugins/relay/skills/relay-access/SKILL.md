@@ -61,7 +61,8 @@ only. `relay status` shows what is open, and `relay disconnect <name>` or
 process when the user is done: it keeps a local port into the database open with no password.
 
 If the connection is not in the list, or `relay connect` is refused, the user probably has no
-grant for it. An admin gives one with the Grant access workflow. If the error says no online agent is
+grant for it. An admin gives one with the Grant access workflow. A cluster made with
+`relay db create` is the exception: it has no connection until one is registered, below. If the error says no online agent is
 available, use the `relay-agents` skill.
 
 ## Workflow: Register a connection
@@ -89,8 +90,9 @@ relay connections create --name <name> --engine postgres --host <host> \
 relay connections list
 ```
 
-`--audit-enabled` records queries for the audit log and `--redact-enabled` turns on masking. TLS
-options are listed by `relay connections create --help`. Change a connection later with
+`--audit-enabled` records queries for the audit log and `--redact-enabled` turns on masking. A host
+that accepts only TLS, which includes every cluster Relay hosts, needs `--host-tls`, with
+`--host-tls-ca-file <path>` to verify its certificate or `--host-tls-skip-verify` to skip that. Change a connection later with
 `relay connections update <name>` and the same flags.
 
 ## Workflow: Grant access

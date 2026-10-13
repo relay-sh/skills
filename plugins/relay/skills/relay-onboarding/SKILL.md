@@ -83,8 +83,8 @@ user asked for:
 |---|---|
 | The user asked for a new database hosted by Relay | Provision a cluster, below |
 | The user asked to reach a database they already run | Register it as a connection with the `relay-access` skill |
-| The user named neither, and connections are listed | Use one. A new account has the sample database `test` with the connections `test-ro`, `test-rw` and `test-admin`; `test-ro` is enough for a first query |
-| A cluster is in `relay db list` but no connection is listed for it | It was made without default connections. Register a connection for it with the `relay-access` skill, taking the endpoint from the cluster's **Connect** panel in the dashboard |
+| The user named neither, and connections are listed | Use a name from the list. A new account usually has the sample database `test` with the connections `test-ro`, `test-rw` and `test-admin`; `test-ro` is enough for a first query |
+| A cluster is in `relay db list` but no connection is listed for it | If it only just became available, list again in a minute: default connections arrive after the cluster does. If none appears, it was made without them: follow the Provision a cluster workflow of the `relay-databases` skill, which says how to register one |
 
 To provision a cluster:
 
@@ -103,8 +103,8 @@ after a yes. Do not add `--wait`: it blocks for up to 15 minutes.
 
 A cluster made with `relay db create` gets no connection, so checkpoint 5 does not follow from it:
 the user still has to register one, as the last row of the table says. Default connections,
-named `<cluster>-ro`, `<cluster>-rw` and `<cluster>-admin`, come only with a cluster made in the
-dashboard with default connections on. Say so before creating the cluster.
+named `<cluster>-ro`, `<cluster>-rw` and `<cluster>-admin`, come only with a PostgreSQL cluster
+made in the dashboard with default connections on. Say so before creating the cluster.
 
 On the free plan the one database slot starts out holding the sample database, named `test`, so
 `relay db create` fails until that slot is free. Do not delete the sample database to make room
@@ -156,6 +156,7 @@ what the command printed, then continue from there with the workflow above.
 | `relay ws list` shows no `*` on any row | Checkpoint 3. Run `relay org use <org>` and `relay ws use <workspace>` |
 | No connection and no cluster in the right workspace | Checkpoint 4 |
 | `relay db list` shows a cluster whose `PHASE` is neither `PHASE_AVAILABLE` nor `PHASE_FAILED` | Checkpoint 4, still provisioning. `relay db status <id>` shows progress |
+| The cluster's `PHASE` is `PHASE_AVAILABLE` and no connection is listed for it | Checkpoint 4. The last row of the table in the workflow above |
 | The cluster's `PHASE` is `PHASE_FAILED` | Checkpoint 4. `relay db status <id>` prints the message; report it and do not delete or recreate without a yes |
 | `relay connect` prints `no online agent available for connection "<name>"`, `agent at <addr> is not reachable` or `agent <addr>: ...` | Not a setup step. Use the `relay-agents` skill; Relay operates the agents |
 | `relay connect` prints `permission denied` or `failed to obtain session token for "<name>"` | For an invited member, the user has no grant. An admin gives one with the `relay-access` skill; the owner of a new account needs none |

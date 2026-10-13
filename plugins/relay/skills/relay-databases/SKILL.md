@@ -72,13 +72,15 @@ background or have the user run it.
 
 A cluster made with `relay db create` has no connection: `relay connections list` does not show
 it and `relay connect` cannot reach it by the cluster's name. Relay creates default connections,
-named `<cluster>-ro`, `<cluster>-rw` and `<cluster>-admin`, only for a cluster made in the
-dashboard with default connections on. Say this before creating the cluster, so a user who wants
-to connect straight away can create it in the dashboard instead.
+named `<cluster>-ro`, `<cluster>-rw` and `<cluster>-admin`, only for a PostgreSQL cluster made in
+the dashboard with default connections on. Say this before creating the cluster, so a user who
+wants to connect to PostgreSQL straight away can create it in the dashboard instead.
 
-To reach a cluster made here, the user takes its endpoint from the cluster's **Connect** panel in
-the dashboard, creates a database user under its **Users** tab, and registers a connection with
-the `relay-access` skill.
+To reach a cluster made here, the user takes its endpoint from the **Driver / URI** tab of the
+cluster's **Connect** panel in the dashboard, creates a database user under its **Users** tab,
+and registers a connection with the `relay-access` skill. A managed cluster accepts only TLS, so
+that connection needs `--host-tls` and `--host-tls-skip-verify`; without them `relay connect`
+fails.
 
 ## Workflow: Inspect a cluster
 
@@ -113,7 +115,8 @@ relay db delete <id> --keep-backups
 
 1. Find the cluster's `ID` in `relay db list` and show the user its row.
 2. Ask two things: whether to delete that cluster in that workspace, and whether to keep its
-   backups. Tell the user that the cluster's Relay connections are removed with it.
+   backups. Tell the user that the cluster's default connections are removed with it, and that
+   a connection registered by hand is not: it stays in `relay connections list` until deleted.
    `--keep-backups` retains the backups for a later restore; without the flag they are deleted and
    the data cannot be recovered. If the user does not answer the second question, keep them.
 3. Run `relay db delete <id>` only after a yes to the first, with or without `--keep-backups`
