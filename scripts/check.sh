@@ -121,6 +121,10 @@ for dir in "$plugin"/evals/*/; do
   esac
 done
 
+if ! python3 "$(dirname "$0")/check_commands.py" "$root"; then
+  failed=1
+fi
+
 if [ "$failed" = 1 ]; then
   exit 1
 fi
