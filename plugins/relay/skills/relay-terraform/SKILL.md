@@ -16,14 +16,10 @@ Relay publishes a Terraform provider, `relay-sh/relay`, and three modules built 
 covers writing configuration with them and reading the plans they produce. It works the same with
 OpenTofu; say `tofu` wherever this file says `terraform`.
 
-**Availability.** The provider and the modules may not be on the public registry yet. If
-`terraform init` reports that `relay-sh/relay` or a `relay-sh/*/relay` module does not exist, stop
-and tell the user that it is not published yet. If it reports that no version matches the
-constraint, stop and show the error. Do not work around either: no other source address, fork, Git
-URL or local path, no `dev_overrides` or filesystem mirror, no loosened or removed version
-constraint, and no `local-exec` calling the `relay` CLI in its place. When you cannot run
-`terraform init` yourself, give the configuration and say in the same reply that init fails until
-the provider is published.
+If `terraform init` cannot find `relay-sh/relay` or a `relay-sh/*/relay` module, or reports that
+no version matches the constraint, stop and show the error. Do not work around it: no other source
+address, fork, Git URL or local path, no `dev_overrides` or filesystem mirror, no loosened or
+removed version constraint, and no `local-exec` calling the `relay` CLI in its place.
 
 The blocks here are what a first configuration needs. Before using any other attribute or input,
 read it instead of guessing. After `terraform init`:
