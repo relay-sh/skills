@@ -70,8 +70,15 @@ Without `--wait` the command prints the cluster `ID` and returns; follow it with
 `relay db status <id>`. With `--wait` it can block for up to 15 minutes, so run it in the
 background or have the user run it.
 
-Once the cluster is available, the user reaches it with `relay connect <name>`. The `relay-access`
-skill covers connecting and granting access to it.
+A cluster made with `relay db create` has no connection: `relay connections list` does not show
+it and `relay connect` cannot reach it by the cluster's name. Relay creates default connections,
+named `<cluster>-ro`, `<cluster>-rw` and `<cluster>-admin`, only for a cluster made in the
+dashboard with default connections on. Say this before creating the cluster, so a user who wants
+to connect straight away can create it in the dashboard instead.
+
+To reach a cluster made here, the user takes its endpoint from the cluster's **Connect** panel in
+the dashboard, creates a database user under its **Users** tab, and registers a connection with
+the `relay-access` skill.
 
 ## Workflow: Inspect a cluster
 
