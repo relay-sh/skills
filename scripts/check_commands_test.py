@@ -70,6 +70,8 @@ Usage:
 Flags:
   -h, --help          help for list
       --limit int32   max number of rows
+      --wait string[="true"]   wait for the rows
+      --name string
 
 Global Flags:
       --org string   override the active organization
@@ -108,6 +110,10 @@ class ParseHelp(unittest.TestCase):
     def test_numeric_flag_type_takes_a_value(self):
         self.assertTrue(snapshot_commands.parse_help(LIST_HELP)["flags"]["limit"])
 
+    def test_optional_value_and_undescribed_flags_are_kept(self):
+        flags = snapshot_commands.parse_help(LIST_HELP)["flags"]
+        self.assertEqual((flags["wait"], flags["name"]), (True, True))
+
 
 class Snapshot(unittest.TestCase):
     def test_walks_every_subcommand(self):
@@ -118,10 +124,28 @@ class Snapshot(unittest.TestCase):
 
     def test_main_writes_json(self):
         with tempfile.TemporaryDirectory() as directory:
-            status, out, _ = run_main(snapshot_commands, ["snapshot", fake_binary(directory), "cli abc"])
+            output = os.path.join(directory, "commands.json")
+            status, _, _ = run_main(snapshot_commands, ["snapshot", fake_binary(directory), "cli abc", output])
+            with open(output) as handle:
+                written = json.load(handle)
         self.assertEqual(status, 0)
-        self.assertEqual(json.loads(out)["source"], "cli abc")
-        self.assertIn("db list", json.loads(out)["commands"])
+        self.assertEqual(written["source"], "cli abc")
+        self.assertIn("db list", written["commands"])
+
+    def test_main_keeps_the_output_when_the_binary_lists_no_commands(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = os.path.join(directory, "commands.json")
+            with open(output, "w") as handle:
+                handle.write("kept")
+            binary = os.path.join(directory, "relay")
+            with open(binary, "w") as handle:
+                handle.write("#!/bin/sh\necho not a cobra binary\n")
+            os.chmod(binary, os.stat(binary).st_mode | stat.S_IXUSR)
+            status, _, err = run_main(snapshot_commands, ["snapshot", binary, "cli abc", output])
+            with open(output) as handle:
+                kept = handle.read()
+        self.assertEqual((status, kept), (1, "kept"))
+        self.assertIn("lists no commands", err)
 
     def test_main_rejects_wrong_arguments(self):
         status, _, err = run_main(snapshot_commands, ["snapshot"])
@@ -146,6 +170,10 @@ class Fragments(unittest.TestCase):
             check_commands.code_fragments(text),
             ["relay agents pools create    --name x\n", "relay db list", "relay"],
         )
+
+    def test_indented_and_tilde_fences_are_code(self):
+        text = "1. Step\n\n   ```bash\n   relay db list\n   ```\n\n~~~\nrelay connect x\n~~~\n"
+        self.assertEqual(check_commands.code_fragments(text), ["   relay db list\n", "relay connect x\n"])
 
     def test_prose_outside_code_is_ignored(self):
         self.assertEqual(check_commands.code_fragments("relay pools is not a command\n"), [])
@@ -194,6 +222,22 @@ class ProblemsIn(unittest.TestCase):
 
     def test_unknown_leading_flag(self):
         self.assertEqual(self.check("relay --bogus db list"), ["unknown flag '--bogus' for 'relay'"])
+
+    def test_flag_between_a_group_and_its_subcommand(self):
+        self.assertEqual(self.check("relay db --org acme list"), [])
+        self.assertEqual(self.check("relay db --org acme bogus"), ["unknown command 'relay db bogus'"])
+        self.assertEqual(self.check("relay db --org=acme --help"), [])
+
+    def test_commands_chained_on_one_line_are_each_checked(self):
+        self.assertEqual(
+            self.check("relay db list && relay pools list; relay groups list | relay agents bogus"),
+            ["unknown command 'relay pools'", "unknown command 'relay groups'", "unknown command 'relay agents bogus'"],
+        )
+
+    def test_flags_of_a_piped_or_wrapped_program_are_not_relay_flags(self):
+        self.assertEqual(self.check("relay db list | grep --bogus x"), [])
+        self.assertEqual(self.check("relay connect pg -- psql --bogus"), [])
+        self.assertEqual(self.check("relay db list # --not-a-flag"), [])
 
     def test_path_segment_ending_in_relay_is_not_a_command(self):
         self.assertEqual(self.check('source = "relay-sh/relay" pools'), [])

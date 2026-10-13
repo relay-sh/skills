@@ -65,7 +65,7 @@ graders and this file against `scripts/relay-commands.json`, a snapshot of the
 CLI's command tree. After a CLI release, regenerate it from a `relay` binary:
 
 ```bash
-scripts/snapshot_commands.py <relay-binary> "userelay-cli <version>" > scripts/relay-commands.json
+scripts/snapshot_commands.py <relay-binary> "userelay-cli <version>" scripts/relay-commands.json
 ```
 
 `claude plugin eval` calls the model with your own Claude Code login and is

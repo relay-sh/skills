@@ -126,10 +126,11 @@ r="$tmp/known-command"; valid_tree "$r"
 printf -- '---\nname: relay-setup\ndescription: Install.\n---\n\n## Workflow: Install the CLI\n\nRun \140relay agents pools list\140.\n' > "$r/$skill_md"
 expect "command that the CLI has" 0 "check: ok" "$r"
 
-if python3 "$(dirname "$check")/check_commands_test.py" > /dev/null 2>&1; then
+if out=$(python3 "$(dirname "$check")/check_commands_test.py" 2>&1); then
   echo "ok   command check unit tests"
 else
   echo "FAIL command check unit tests"
+  echo "$out"
   failures=$((failures + 1))
 fi
 

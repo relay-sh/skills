@@ -6,10 +6,11 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FENCE = re.compile(r"^```[^\n]*\n(.*?)^```", re.M | re.S)
+FENCE = re.compile(r"^[ \t]*(?:```|~~~)[^\n]*\n(.*?)^[ \t]*(?:```|~~~)", re.M | re.S)
 SPAN = re.compile(r"`([^`\n]+)`")
 PATTERN = re.compile(r"^pattern: '(.*)'$", re.M)
 COMMAND = re.compile(r"(?<![\w/.-])relay((?: +\S+)+)")
+SEPARATOR = re.compile(r"&&|\|\||[;|]| #| -- ")
 WORD = re.compile(r"^[a-z][a-z-]*$")
 FLAG = re.compile(r"^--([a-z][a-z0-9-]*)")
 
@@ -25,7 +26,7 @@ def grader_fragments(text):
 
 def problems_in(fragment, commands):
     found = []
-    for match in COMMAND.finditer(fragment):
+    for match in (found for part in SEPARATOR.split(fragment) for found in COMMAND.finditer(part)):
         tokens = match.group(1).split()
         root = commands[""]
         while tokens and FLAG.match(tokens[0]):
@@ -34,21 +35,27 @@ def problems_in(fragment, commands):
                 found.append(f"unknown flag '--{name}' for 'relay'")
             takes_value = root["flags"].get(name, False) and "=" not in tokens[0]
             tokens = tokens[2:] if takes_value else tokens[1:]
-        path = []
-        for token in tokens:
+        path, rest, value = [], [], False
+        for index, token in enumerate(tokens):
             node = commands[" ".join(path)]
+            flag = FLAG.match(token)
+            if value or flag:
+                value = bool(flag) and node["flags"].get(flag.group(1), False) and "=" not in token
+                rest.append(token)
+                continue
             step = next(
                 (sub for sub in node["subs"] if token == sub or token in commands[" ".join([*path, sub])]["aliases"]),
                 None,
             )
             if step is None:
+                rest += tokens[index:]
                 break
             path.append(step)
         node = commands[" ".join(path)]
-        rest = tokens[len(path):]
+        stray = tokens[index] if tokens and step is None else ""
         shown = " ".join(["relay", *path])
-        if rest and node["subs"] and WORD.match(rest[0]):
-            found.append(f"unknown command '{shown} {rest[0]}'")
+        if node["subs"] and WORD.match(stray):
+            found.append(f"unknown command '{shown} {stray}'")
             continue
         for token in rest:
             flag = FLAG.match(token)

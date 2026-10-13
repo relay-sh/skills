@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 SECTION = re.compile(r"^([A-Z][A-Za-z ]+):$")
-FLAG = re.compile(r"^\s+(?:-\w, )?--([a-z0-9-]+)(?: ([a-zA-Z0-9]+))?\s{2,}")
+FLAG = re.compile(r"^\s+(?:-\w, )?--([a-z0-9-]+)(?: ([a-zA-Z0-9]+(?:\[[^\]]*\])?))?(?:\s{2,}|$)")
 SKIPPED = {"help", "completion"}
 
 
@@ -43,11 +43,16 @@ def snapshot(binary, path=()):
 
 
 def main(argv):
-    if len(argv) != 3:
-        print("usage: snapshot_commands.py <relay-binary> <source-label>", file=sys.stderr)
+    if len(argv) != 4:
+        print("usage: snapshot_commands.py <relay-binary> <source-label> <output-file>", file=sys.stderr)
         return 2
-    json.dump({"source": argv[2], "commands": snapshot(argv[1])}, sys.stdout, indent=2, sort_keys=True)
-    sys.stdout.write("\n")
+    commands = snapshot(argv[1])
+    if not commands[""]["subs"]:
+        print(f"snapshot: {argv[1]} --help lists no commands", file=sys.stderr)
+        return 1
+    with open(argv[3], "w") as handle:
+        json.dump({"source": argv[2], "commands": commands}, handle, indent=2, sort_keys=True)
+        handle.write("\n")
     return 0
 
 
