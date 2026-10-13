@@ -1,4 +1,4 @@
 ---
 type: regex
-pattern: 'relay connections list|relay pools list'
+pattern: 'relay connections list|relay agents pools list'
 ---

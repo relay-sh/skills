@@ -122,12 +122,12 @@ relay whoami
 relay ws list
 relay teams create --name <team>
 relay teams add-member --team <team> --email <email>
-relay groups create --name <group> --description "<what it is for>"
-relay groups add-connection --group <group> --connection <connection>
+relay connections groups create --name <group> --description "<what it is for>"
+relay connections groups add-connection --group <group> --connection <connection>
 ```
 
-`relay teams list` and `relay groups list` show what exists. `relay teams remove-member` and
-`relay groups remove-connection` take the same flags as their `add` forms and take access away, so
+`relay teams list` and `relay connections groups list` show what exists. `relay teams remove-member` and
+`relay connections groups remove-connection` take the same flags as their `add` forms and take access away, so
 they need a yes first.
 
 ## Workflow: Invite a member

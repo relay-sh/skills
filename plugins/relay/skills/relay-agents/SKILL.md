@@ -14,7 +14,7 @@ A Relay **agent** carries traffic between Relay and a database. Agents are group
 pools**, and each connection names a pool: any online agent in that pool can serve it.
 
 **Relay runs the agents.** A customer does not install, enroll or remove one. The CLI still has
-`relay enrollment-tokens`, `relay pools create`, `relay pools delete` and `relay agents delete`;
+`relay enrollment-tokens`, `relay agents pools create`, `relay agents pools delete` and `relay agents delete`;
 do not run or suggest them, and do not suggest installing an agent, even where a documentation
 page describes it. This skill only reads the state of agents and pools, to tell whether an agent
 is the reason a connection fails.
@@ -48,7 +48,7 @@ before using any other.
 ```bash
 relay connections list
 relay agents list
-relay pools list
+relay agents pools list
 ```
 
 `relay connections list` shows the `POOL` each connection uses. `relay agents list` shows each

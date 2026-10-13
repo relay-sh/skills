@@ -1,4 +1,4 @@
 ---
 type: regex
-pattern: 'relay groups create --name analytics'
+pattern: 'relay connections groups create --name analytics'
 ---
