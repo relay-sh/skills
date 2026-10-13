@@ -120,7 +120,7 @@ expect "whitespace-only prompt without frontmatter" 1 "relay-setup--install-the-
 
 r="$tmp/unknown-command"; valid_tree "$r"
 printf -- '---\nname: relay-setup\ndescription: Install.\n---\n\n## Workflow: Install the CLI\n\nRun \140relay pools list\140.\n' > "$r/$skill_md"
-expect "command that the CLI does not have" 1 "relay-setup/SKILL.md: unknown command 'relay pools'" "$r"
+expect "command that the CLI does not have" 1 "relay-setup/SKILL.md:8: unknown command 'relay pools'" "$r"
 
 r="$tmp/known-command"; valid_tree "$r"
 printf -- '---\nname: relay-setup\ndescription: Install.\n---\n\n## Workflow: Install the CLI\n\nRun \140relay agents pools list\140.\n' > "$r/$skill_md"
