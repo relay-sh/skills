@@ -118,6 +118,21 @@ expect "empty prompt body" 1 "relay-setup--install-the-cli: prompt.md has no pro
 r="$tmp/empty-prompt-bare"; valid_tree "$r"; printf -- '\n \n' > "$r/$case_dir/prompt.md"
 expect "whitespace-only prompt without frontmatter" 1 "relay-setup--install-the-cli: prompt.md has no prompt text" "$r"
 
+r="$tmp/unknown-command"; valid_tree "$r"
+printf -- '---\nname: relay-setup\ndescription: Install.\n---\n\n## Workflow: Install the CLI\n\nRun \140relay pools list\140.\n' > "$r/$skill_md"
+expect "command that the CLI does not have" 1 "relay-setup/SKILL.md: unknown command 'relay pools'" "$r"
+
+r="$tmp/known-command"; valid_tree "$r"
+printf -- '---\nname: relay-setup\ndescription: Install.\n---\n\n## Workflow: Install the CLI\n\nRun \140relay agents pools list\140.\n' > "$r/$skill_md"
+expect "command that the CLI has" 0 "check: ok" "$r"
+
+if python3 "$(dirname "$check")/check_commands_test.py" > /dev/null 2>&1; then
+  echo "ok   command check unit tests"
+else
+  echo "FAIL command check unit tests"
+  failures=$((failures + 1))
+fi
+
 if [ "$failures" != 0 ]; then
   echo "$failures failed"
   exit 1
