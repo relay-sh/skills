@@ -1,9 +1,9 @@
 # Relay skills for Claude Code
 
 Skills that let [Claude Code](https://claude.com/claude-code) operate
-[Relay](https://docs.userelay.sh) for you: install and sign in to the `relay`
-CLI, and pick the organization and workspace you work in. Skills for access
-management, managed databases and Terraform are on the way.
+[Relay](https://docs.userelay.sh) for you: set up the `relay` CLI, manage who
+can reach which database, check agent health, and provision managed databases.
+A skill for the Terraform provider is on the way.
 
 ## Install
 
@@ -14,8 +14,8 @@ In a Claude Code session:
 /plugin install relay@relay-sh
 ```
 
-Then ask for what you need, for example "set me up with the Relay CLI" or
-"sign me in to Relay from this SSH session".
+Then ask for what you need, for example "connect me to pg-orders", "give the
+data-eng team access to the analytics group" or "is the pg-billing cluster up?".
 
 ## Update
 
@@ -34,6 +34,9 @@ To update automatically, open `/plugin`, go to **Marketplaces**, select
 | Skill | What it does |
 |---|---|
 | `relay-setup` | Installs the CLI, signs in (browser, SSO or device code), selects the organization and workspace, and shows how CI authenticates with `RELAY_TOKEN` |
+| `relay-access` | Opens connections, registers databases, grants and revokes access, manages teams, groups and members, and reads the query audit log |
+| `relay-agents` | Checks which agents are online and which pool a connection uses, to tell whether an agent is why a connection fails |
+| `relay-databases` | Provisions managed database clusters, reports their status and nodes, and deletes them |
 
 ## What the skills will not do
 
