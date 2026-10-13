@@ -33,6 +33,7 @@ To update automatically, open `/plugin`, go to **Marketplaces**, select
 
 | Skill | What it does |
 |---|---|
+| `relay-onboarding` | Walks a new account from sign-up to a first connected database, and finds the step where a stalled setup stopped |
 | `relay-setup` | Installs the CLI, signs in (browser, SSO or device code), selects the organization and workspace, and shows how CI authenticates with `RELAY_TOKEN` |
 | `relay-access` | Opens connections, registers databases, grants and revokes access, manages teams, groups and members, and reads the query audit log |
 | `relay-agents` | Checks which agents are online and which pool a connection uses, to tell whether an agent is why a connection fails |
