@@ -2,8 +2,8 @@
 
 Skills that let [Claude Code](https://claude.com/claude-code) operate
 [Relay](https://docs.userelay.sh) for you: set up the `relay` CLI, manage who
-can reach which database, check agent health, and provision managed databases.
-A skill for the Terraform provider is on the way.
+can reach which database, check agent health, provision managed databases,
+and write Terraform for Relay.
 
 ## Install
 
@@ -37,6 +37,7 @@ To update automatically, open `/plugin`, go to **Marketplaces**, select
 | `relay-access` | Opens connections, registers databases, grants and revokes access, manages teams, groups and members, and reads the query audit log |
 | `relay-agents` | Checks which agents are online and which pool a connection uses, to tell whether an agent is why a connection fails |
 | `relay-databases` | Provisions managed database clusters, reports their status and nodes, and deletes them |
+| `relay-terraform` | Writes and reviews Terraform for the `relay-sh/relay` provider and its modules: workspaces, connections, PostgreSQL clusters, network access, and imports. The provider is not on the public Terraform registry yet |
 
 ## What the skills will not do
 
