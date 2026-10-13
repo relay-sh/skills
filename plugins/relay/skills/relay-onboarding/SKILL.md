@@ -22,7 +22,7 @@ the same list works for someone starting from nothing and for someone who stalle
 | 2 | Signed in | `relay whoami` prints an email; under `RELAY_TOKEN` it prints `Auth: RELAY_TOKEN` instead | `relay-setup` |
 | 3 | The right organization and workspace are active | `relay ws list` shows `*` on the intended workspace, after `relay org use` and `relay ws use` | `relay-setup` |
 | 4 | A database exists in Relay | `relay connections list` shows a connection | `relay-databases` or `relay-access` |
-| 5 | Connected | `relay connect <name>` prints a `Listening:` address for the connection, then `Ready to accept connections` | `relay-access` |
+| 5 | Connected | `relay connect <connection-name>` prints a `Listening:` address for the connection, then `Ready to accept connections` | `relay-access` |
 
 When you have a shell, run the proofs yourself and report what they printed. When you do not, give
 the commands in order and say what each should print.
@@ -71,8 +71,10 @@ relay ws list
 `brew` is for macOS; the `relay-setup` skill has the Linux and Windows installers. It installs
 software, so show the line before running it. `relay login` is interactive, so the user runs it in
 their own terminal. A fresh login selects nothing: `relay org list` and `relay ws list` show no `*`
-until `relay org use` and `relay ws use` have run. A new account has one organization and a default
-workspace, so use those names from the lists. The last `relay ws list` is the proof.
+until `relay org use` and `relay ws use` have run. Until then the server acts on the
+organization's default workspace, which nothing on screen shows, so select both. A new account has
+one organization and a default workspace: use those names from the lists. The last
+`relay ws list` is the proof.
 
 **4. A database.** Run `relay connections list` and `relay db list`, then pick the row by what the
 user asked for:
@@ -81,8 +83,8 @@ user asked for:
 |---|---|
 | The user asked for a new database hosted by Relay | Provision a cluster, below |
 | The user asked to reach a database they already run | Register it as a connection with the `relay-access` skill |
-| The user named neither, and a connection is listed, such as one for the sample database `test` | Use it. Nothing needs creating for a first connection |
-| A cluster is in `relay db list` but no connection is listed for it | Try `relay connect <cluster-name>`; if it is not found, the cluster's **Connect** panel in the dashboard shows the command |
+| The user named neither, and connections are listed | Use a name from the list. A new account usually has the sample database `test` with the connections `test-ro`, `test-rw` and `test-admin`; `test-ro` is enough for a first query |
+| A cluster is in `relay db list` but no connection is listed for it | If it only just became available, list again in a minute: default connections arrive after the cluster does. If none appears, it was made without them: follow the Provision a cluster workflow of the `relay-databases` skill, which says how to register one |
 
 To provision a cluster:
 
@@ -99,6 +101,11 @@ tiers and `--ha` need a paid plan, where a running cluster accrues usage charges
 plan, state the whole specification and the workspace it goes into, and run `relay db create` only
 after a yes. Do not add `--wait`: it blocks for up to 15 minutes.
 
+A cluster made with `relay db create` gets no connection, so checkpoint 5 does not follow from it:
+the user still has to register one, as the last row of the table says. Default connections,
+named `<cluster>-ro`, `<cluster>-rw` and `<cluster>-admin`, come only with a PostgreSQL cluster
+made in the dashboard with default connections on. Say so before creating the cluster.
+
 On the free plan the one database slot starts out holding the sample database, named `test`, so
 `relay db create` fails until that slot is free. Do not delete the sample database to make room
 unless the user asks for it, and then follow the Delete a cluster workflow of the
@@ -108,8 +115,11 @@ usually the faster way to see Relay working.
 **5. Connect.**
 
 ```bash
-relay connect <name>
+relay connections list
+relay connect <connection-name>
 ```
+
+The name is a connection's name from the list, such as `test-ro`, not the cluster's name.
 
 The command keeps running until Ctrl+C, so have the user run it in their own terminal, or run it
 in the background and pass on what it prints under `Connect with:`, a ready client command such as
@@ -146,6 +156,7 @@ what the command printed, then continue from there with the workflow above.
 | `relay ws list` shows no `*` on any row | Checkpoint 3. Run `relay org use <org>` and `relay ws use <workspace>` |
 | No connection and no cluster in the right workspace | Checkpoint 4 |
 | `relay db list` shows a cluster whose `PHASE` is neither `PHASE_AVAILABLE` nor `PHASE_FAILED` | Checkpoint 4, still provisioning. `relay db status <id>` shows progress |
+| The cluster's `PHASE` is `PHASE_AVAILABLE` and no connection is listed for it | Checkpoint 4. The last row of the table in the workflow above |
 | The cluster's `PHASE` is `PHASE_FAILED` | Checkpoint 4. `relay db status <id>` prints the message; report it and do not delete or recreate without a yes |
 | `relay connect` prints `no online agent available for connection "<name>"`, `agent at <addr> is not reachable` or `agent <addr>: ...` | Not a setup step. Use the `relay-agents` skill; Relay operates the agents |
 | `relay connect` prints `permission denied` or `failed to obtain session token for "<name>"` | For an invited member, the user has no grant. An admin gives one with the `relay-access` skill; the owner of a new account needs none |
