@@ -145,6 +145,9 @@ class ParseHelp(unittest.TestCase):
         self.assertEqual(parsed["aliases"], ["database"])
         self.assertEqual(parsed["flags"], {"help": False, "org": True})
 
+    def test_aliases_header_on_the_last_line(self):
+        self.assertEqual(snapshot_commands.parse_help("Aliases:")["aliases"], [])
+
     def test_flag_types_shorthands_and_undescribed_flags(self):
         parsed = snapshot_commands.parse_help(LIST_HELP)
         self.assertEqual(
@@ -209,7 +212,7 @@ class Snapshot(unittest.TestCase):
         self.assertIn("exited 3: broken build", err)
 
     def test_main_reports_a_missing_binary(self):
-        self.assertIn("snapshot:", self.failing_main(None))
+        self.assertIn("No such file or directory", self.failing_main(None))
 
     def test_main_reports_a_binary_that_hangs(self):
         expired = subprocess.TimeoutExpired(["relay", "--help"], 30)
@@ -255,8 +258,16 @@ class Fragments(unittest.TestCase):
     def test_unterminated_fence_runs_to_the_end(self):
         self.assertEqual(check_commands.code_fragments("```\nrelay db list\n"), [(2, "relay db list\n")])
 
-    def test_html_code_element_is_code(self):
+    def test_html_code_and_pre_elements_are_code(self):
         self.assertEqual(check_commands.code_fragments("Run <code>relay db list</code>.\n"), [(1, "relay db list")])
+        self.assertEqual(
+            check_commands.code_fragments('<code class="x">relay db list</code>\n\n<pre>\nrelay connect x\n</pre>\n'),
+            [(1, "relay db list"), (3, "\nrelay connect x\n")],
+        )
+
+    def test_inline_triple_backticks_do_not_open_a_fence(self):
+        text = "```relay db list``` is the command.\n\nThe relay agents are run by Relay.\n"
+        self.assertEqual(check_commands.code_fragments(text), [(1, "relay db list")])
 
     def test_indented_block_after_a_blank_line_is_code(self):
         text = "Run this:\n\n    relay db list\n\n    relay connect x\nand then stop.\n"
@@ -270,6 +281,14 @@ class Fragments(unittest.TestCase):
     def test_indented_text_in_a_paragraph_or_a_list_is_prose(self):
         text = "A paragraph\n    relay pools wraps here\n\n- item\n\n    relay pools continues the item\n"
         self.assertEqual(check_commands.code_fragments(text), [])
+
+    def test_list_item_that_wraps_or_has_paragraphs_is_still_a_list(self):
+        for item in ("- Run it and then\n  keep going\n", "1. First step\n   wraps here\n", "- a\n\n  second paragraph\n"):
+            self.assertEqual(check_commands.code_fragments(f"{item}\n    the relay agents are run by Relay\n"), [])
+
+    def test_list_ends_at_a_paragraph_after_a_blank_line(self):
+        text = "- item\nlazy line\n\nA paragraph\n\n    relay db list\n"
+        self.assertEqual(check_commands.code_fragments(text), [(6, "    relay db list")])
 
     def test_prose_outside_code_is_ignored(self):
         self.assertEqual(check_commands.code_fragments("relay pools is not a command\n"), [])
@@ -321,6 +340,13 @@ class ProblemsIn(unittest.TestCase):
         self.assertEqual(self.check("relay db bogus_cmd"), ["unknown command 'relay db bogus_cmd'"])
         self.assertEqual(self.check("relay pools."), ["unknown command 'relay pools'"])
 
+    def test_known_command_followed_by_punctuation_passes(self):
+        self.assertEqual(self.check("relay db list, relay db list. relay database: relay agents pools;"), [])
+
+    def test_uppercase_placeholder_after_a_group_passes(self):
+        self.assertEqual(self.check("relay db ID"), [])
+        self.assertEqual(self.check("relay COMMAND --help"), [])
+
     def test_unknown_flag(self):
         self.assertEqual(self.check("relay agents list --json"), ["unknown flag '--json' for 'relay agents list'"])
 
@@ -346,7 +372,7 @@ class ProblemsIn(unittest.TestCase):
     def test_value_that_looks_like_a_flag_is_a_value(self):
         self.assertEqual(self.check("relay --org --bogus db list"), [])
 
-    def test_flag_is_valid_where_it_is_written_or_on_the_final_command(self):
+    def test_flag_before_the_subcommand_that_defines_it_is_read_as_boolean(self):
         self.assertEqual(self.check("relay --insecure db list"), [])
         self.assertEqual(self.check("relay agents --output wide list"), ["unknown command 'relay agents wide'"])
         self.assertEqual(self.check("relay connect pg --port 5433 extra --bogus"), ["unknown flag '--bogus' for 'relay connect'"])

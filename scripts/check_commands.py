@@ -6,8 +6,8 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FENCE = re.compile(r"^[ \t]*(`{3,}|~{3,})[^\n]*\n(.*?)(?:^[ \t]*\1[`~]*[ \t]*$|\Z)", re.M | re.S)
-SPAN = re.compile(r"`([^`\n]+)`|<code>(.*?)</code>")
+FENCE = re.compile(r"^[ \t]*(`{3,}|~{3,})[^`\n]*\n(.*?)(?:^[ \t]*\1[`~]*[ \t]*$|\Z)", re.M | re.S)
+SPAN = re.compile(r"`([^`\n]+)`|<(?:code|pre)\b[^>]*>(.*?)</(?:code|pre)>", re.S)
 INDENT = re.compile(r"^(?: {4}|\t)")
 LIST = re.compile(r"^ {0,3}(?:[-*+]|\d+[.)])\s")
 PATTERN = re.compile(r"^pattern:[ \t]*(['\"]?)(.*?)\1[ \t]*$", re.M)
@@ -39,7 +39,9 @@ def indented_blocks(text):
             blocks.append((start, "\n".join(lines)))
             lines = []
         if line.strip() and not INDENT.match(line):
-            code, in_list = False, bool(LIST.match(line))
+            code = False
+            leaves_list = after_blank and not line.startswith(" ")
+            in_list = bool(LIST.match(line)) or (in_list and not leaves_list)
         after_blank = not line.strip()
     return blocks
 
@@ -81,31 +83,40 @@ def flag_of(token, node):
     return None
 
 
+def subcommand(token, path, commands):
+    node = commands[" ".join(path)]
+    return next(
+        (sub for sub in node["subs"] if token == sub or token in commands[" ".join([*path, sub])]["aliases"]),
+        None,
+    )
+
+
 def command_problems(tokens, commands):
-    path, seen, stray, value, walking = [], [], "", False, True
+    path, flags, stray, value, walking = [], [], "", False, True
     for token in tokens:
         node = commands[" ".join(path)]
         flag = flag_of(token, node)
         if value:
             value = False
         elif flag:
-            seen.append((token, node))
-            value = node["flags"].get(flag[1], False) and "=" not in token
+            name = flag[1]
+            flags.append((token, name is not None))
+            value = node["flags"].get(name, False) and "=" not in token
         elif walking:
-            step = next(
-                (sub for sub in node["subs"] if token == sub or token in commands[" ".join([*path, sub])]["aliases"]),
-                None,
-            )
-            walking, stray = step is not None, "" if step else token.rstrip(".,:;")
-            path += [step] if step else []
+            word = token.rstrip(".,:;")
+            step = subcommand(word, path, commands)
+            if step:
+                path.append(step)
+            else:
+                walking, stray = False, word
     node = commands[" ".join(path)]
     shown = " ".join(["relay", *path])
-    if node["subs"] and WORD.match(stray):
+    if node["subs"] and WORD.match(stray) and not stray.isupper():
         return [f"unknown command '{shown} {stray}'"]
     return [
         f"unknown flag '{flag_of(token, node)[0]}' for '{shown}'"
-        for token, at in seen
-        if flag_of(token, node)[1] is None and flag_of(token, at)[1] is None
+        for token, known in flags
+        if not known and flag_of(token, node)[1] is None
     ]
 
 

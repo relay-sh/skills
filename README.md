@@ -62,7 +62,8 @@ claude plugin eval plugins/relay
 
 `scripts/check.sh` also matches every `relay` command and flag written as code
 in the skills, graders, eval prompts and this file against
-`scripts/relay-commands.json`, a snapshot of the CLI's command tree. After a CLI release, regenerate it from a `relay` binary:
+`scripts/relay-commands.json`, a snapshot of the CLI's command tree. After a CLI
+release, regenerate it from a `relay` binary:
 
 ```bash
 scripts/snapshot_commands.py <relay-binary> "userelay-cli <version>" scripts/relay-commands.json

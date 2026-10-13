@@ -20,7 +20,7 @@ def parse_help(text):
         if header:
             section = header.group(1)
             if section == "Aliases":
-                aliases = [alias.strip() for alias in lines[index + 1].split(",")][1:]
+                aliases = [alias.strip() for alias in "".join(lines[index + 1 : index + 2]).split(",")][1:]
             continue
         command = COMMAND.match(line)
         flag = FLAG.match(line)
